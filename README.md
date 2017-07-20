@@ -1,6 +1,7 @@
 # Ruby Coding Style Guide
 
-This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archive.org/web/20160410033955/https://github.com/styleguide/ruby) and [Bozhidar Batsov's guide][bbatsov-ruby].
+This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archive.org/web/20160410033955/https://github.com/styleguide/ruby) and
+[Bozhidar Batsov's guide](https://github.com/bbatsov/ruby-style-guide).
 
 ## Table of Contents
   1. [Whitespace](#whitespace)
@@ -26,6 +27,7 @@ This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archiv
   1. [Classes](#classes)
   1. [Exceptions](#exceptions)
   1. [Collections](#collections)
+  1. [Hashes](#hashes)
   1. [Strings](#strings)
   1. [Regular Expressions](#regular-expressions)
   1. [Percent Literals](#percent-literals)
@@ -42,6 +44,19 @@ This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archiv
 * Indent `when` as deep as `case`.
 
     ```ruby
+    # bad
+    case
+      when song.name == 'Misty'
+        puts 'Not again!'
+      when song.duration > 120
+        puts 'Too long!'
+      when Time.now.hour > 21
+        puts "It's too late"
+      else
+        song.play
+    end
+    
+    # good
     case
     when song.name == 'Misty'
       puts 'Not again!'
@@ -52,8 +67,29 @@ This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archiv
     else
       song.play
     end
+    ```
 
-    kind = case year
+* When assigning the result of a conditional expression to a variable, preserve the usual alignment of its branches.
+
+    ```ruby
+     # bad - pretty convoluted
+     kind = case year
+     when 1850..1889 then 'Blues'
+     when 1890..1909 then 'Ragtime'
+     when 1910..1929 then 'New Orleans Jazz'
+     when 1930..1939 then 'Swing'
+     when 1940..1950 then 'Bebop'
+     else 'Jazz'
+     end
+     
+     result = if some_cond
+       calc_something
+     else
+       calc_something_else
+     end
+ 
+   # good - it's apparent what's going on
+   kind = case year
            when 1850..1889 then 'Blues'
            when 1890..1909 then 'Ragtime'
            when 1910..1929 then 'New Orleans Jazz'
@@ -61,6 +97,30 @@ This Ruby Coding Style Guide was inspired by [Github's guide](https://web.archiv
            when 1940..1950 then 'Bebop'
            else 'Jazz'
            end
+           
+   result = if some_cond
+              calc_something
+            else
+              calc_something_else
+            end
+
+    # good (and a bit more width efficient)
+    kind =
+      case year
+      when 1850..1889 then 'Blues'
+      when 1890..1909 then 'Ragtime'
+      when 1910..1929 then 'New Orleans Jazz'
+      when 1930..1939 then 'Swing'
+      when 1940..1950 then 'Bebop'
+      else 'Jazz'
+      end
+    
+    result =
+      if some_cond
+        calc_something
+      else
+        calc_something_else
+      end
     ```
 
 * Align function parameters either all on the same line or one per line.
@@ -973,6 +1033,41 @@ In either case:
     that return a boolean value) should end in a question mark.
     (i.e. `Array#empty?`).
 
+* Avoid prefixing predicate methods with the auxiliary verbs such as is, does, or can. These words are redundant and
+inconsistent with the style of boolean methods in the Ruby core library, such as `empty?` and `include?`
+
+    ```ruby
+    # bad
+    class Person
+      def is_tall?
+        true
+      end
+    
+      def can_play_basketball?
+        false
+      end
+    
+      def does_like_candy?
+        true
+      end
+    end
+    
+    # good
+    class Person
+      def tall?
+        true
+      end
+    
+      def basketball_player?
+        false
+      end
+    
+      def likes_candy?
+        true
+      end
+    end
+    ```
+
 * The names of potentially "dangerous" methods
     (i.e. methods that modify `self` or the arguments, `exit!`, etc.) should
     end with an exclamation mark. Bang methods should only exist if a non-bang
@@ -1208,6 +1303,24 @@ In either case:
     # => 'one, two, three'
     ```
 
+* Use a trailing comma in an `Array` that
+    spans more than 1 line
+
+    ```ruby
+    # good
+    array = [1, 2, 3]
+
+    # good
+    array = [
+      "car",
+      "bear",
+      "plane",
+      "zoo",
+    ]
+    ```
+
+## Hashes
+
 * Use symbols instead of strings as hash keys.
 
     ```ruby
@@ -1218,8 +1331,7 @@ In either case:
     hash = { :one => 1, :two => 2, :three => 3 }
     ```
 
-* Relatedly, use plain symbols instead of string
-    symbols when possible.
+* Relatedly, use plain symbols instead of string symbols when possible.
 
     ```ruby
     # bad
@@ -1248,29 +1360,57 @@ In either case:
 
     ```ruby
     hash = {
-      :protocol => 'https',
-      :only_path => false,
-      :controller => :users,
-      :action => :set_password,
-      :redirect => @redirect_url,
-      :secret => @secret,
+      protocol:   'https',
+      only_path:  false,
+      controller: :users,
+      action:     :set_password,
+      redirect:   @redirect_url,
+      secret:     @secret,
     }
     ```
 
-* Use a trailing comma in an `Array` that
-    spans more than 1 line
+* Use the Ruby 1.9 syntax for hash literals when all the keys are symbols:
 
     ```ruby
+    # bad
+    user = {
+      :login => "defunkt",
+      :name => "Chris Wanstrath"
+    }
+  
     # good
-    array = [1, 2, 3]
+    user = {
+      login: "defunkt",
+      name: "Chris Wanstrath"
+    }
+    ```
+    
+* Use the 1.9 syntax when calling a method with Hash options arguments or named arguments:
 
+    ```ruby
+    # bad
+    user = User.create(:login => "jane")
+    link_to("Account", :controller => "users", :action => "show", :id => user)
+  
     # good
-    array = [
-      "car",
-      "bear",
-      "plane",
-      "zoo",
-    ]
+    user = User.create(login: "jane")
+    link_to("Account", controller: "users", action: "show", id: user)
+    ```
+
+* If you have a hash with mixed key types, use the legacy hashrocket style to avoid mixing styles within the same hash:
+
+    ```ruby
+    # bad
+    hsh = {
+      user_id: 55,
+      "followers-count" => 1000
+    }
+  
+    # good
+    hsh = {
+      :user_id          => 55,
+      "followers-count" => 1000
+    }
     ```
 
 ## Strings
@@ -1448,7 +1588,7 @@ In either case:
 
 ## Be Consistent
 
-> If you're editing code, take a few minutes to look at the code around you and
+> If you are editing code, take a few minutes to look at the code around you and
 > determine its style. If they use spaces around all their arithmetic
 > operators, you should too. If their comments have little boxes of hash marks
 > around them, make your comments have little boxes of hash marks around them
